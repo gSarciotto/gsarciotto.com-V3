@@ -1,0 +1,9 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "outDir": "tests",
+        "target": "esnext",
+        "noEmit": false,
+        "allowImportingTsExtensions": false
+    }
+}
