@@ -4,14 +4,15 @@ import type {
     Effects,
     Extension,
     State,
-    Tokenizer
+    Tokenizer,
+    TokenizeContext
 } from "micromark-util-types";
 import {
     codes as micromarkCodes,
     types as micromarkTypes
 } from "micromark-util-symbol";
 import assert from "node:assert";
-import { asciiAlphanumeric } from "micromark-util-character";
+import { asciiAlphanumeric, unicodeWhitespace } from "micromark-util-character";
 
 /* TODO
 We have to change the tests so they dont use fromMarkdown, instead we will test micromark only. For that we also need to write an extension to the html compiler:
@@ -39,11 +40,14 @@ export function micromarkObsidianWikilink(): Extension {
  * @type {Tokenizer}
  */
 function obsidianWikilinkTokenizer(
+    this: TokenizeContext,
     effects: Effects,
     ok: State,
     nok: State
 ): ReturnType<Tokenizer> {
     console.log("tokenizer");
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const tokenizeContext = this;
     return start;
 
     /**
@@ -55,8 +59,25 @@ function obsidianWikilinkTokenizer(
             code === micromarkCodes.leftSquareBracket,
             "obsidianWikilink: expected '['"
         );
+        const isBracketEscaped =
+            tokenizeContext.events[tokenizeContext.events.length - 1]?.[1]
+                .type === micromarkTypes.characterEscape;
+        if (isBracketEscaped) {
+            console.log(
+                "obsidianWikilink: wont tokenize due to escaped bracket"
+            );
+            return nok;
+        }
+        const previousCharacter = tokenizeContext.previous;
+        const isPreviousCharacterValid =
+            previousCharacter === micromarkCodes.leftSquareBracket || // the leftSquareBracket is so that it doesnt throw on the second [ if it fails to create token on the first [
+            previousCharacter === null ||
+            unicodeWhitespace(previousCharacter);
+        assert(
+            isPreviousCharacterValid,
+            `obsidianWikilink: previous character ${tokenizeContext.previous} is not valid`
+        );
 
-        effects.attempt;
         effects.enter(micromarkTypes.obsidianWikilink);
         effects.enter(micromarkTypes.obsidianWikilinkMarker);
         effects.consume(code);

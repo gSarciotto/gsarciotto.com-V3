@@ -18,12 +18,35 @@ await describe("obsdian wikilink parser should", async () => {
         expect(result).to.be.equal(`<p>${textWithoutRightSquareBrackets}</p>`);
     });
 
-    await it(
-        "not create wikilink if preceding character from first [ is not whitespace, tab or nothing (beggining of line)",
-        { todo: true }
-    );
+    await it("not create wikilink if first bracket is escaped", () => {
+        // prettier-ignore
+        const textWithEscapedLeftBracket =
+            // eslint-disable-next-line no-useless-escape
+            "a \\[[b]] c";
 
-    await it("not create wikilinkg if it is empty", () => {
+        const result = micromark(textWithEscapedLeftBracket, "utf-16be", {
+            extensions: [micromarkObsidianWikilink()]
+        });
+
+        expect(result).to.be.equal(`<p>a [[b]] c</p>`);
+    });
+
+    await it("not create wikilink if preceding character from first [ is not whitespace, tab or nothing (beggining of line)", () => {
+        const textWithNonSpacingCharacterBeforeFirstLeftBracket =
+            "this is some text before[[this is inside]] this is after";
+
+        expect(() =>
+            micromark(
+                textWithNonSpacingCharacterBeforeFirstLeftBracket,
+                "utf-16be",
+                {
+                    extensions: [micromarkObsidianWikilink()]
+                }
+            )
+        ).to.throw(/obsidianWikilink: previous character \d+ is not valid/);
+    });
+
+    await it("not create wikilink if it is empty", () => {
         const emptyWikilink = "[[ ]]";
         const textWithAnEmptyWikilink = `this is some text ${emptyWikilink} this is another text`;
 
@@ -52,11 +75,11 @@ await describe("obsdian wikilink parser should", async () => {
     });
 
     await it("create wikilink without alias", () => {
-        const textBeforeWikilink = "This is the before text ";
+        const textBeforeWikilink = "this is before";
         const wikilinkText = "This is Text_inside the brackets";
-        const textAfterWikilink = " this is the after text";
-        const textWithWikilink =
-            textBeforeWikilink + "[[" + wikilinkText + "]]" + textAfterWikilink;
+        const textAfterWikilink = "this is after";
+        const textWithWikilink = `${textBeforeWikilink}
+        [[${wikilinkText}]] ${textAfterWikilink}`;
         const expectedWikilink = ""; // change after html implementation
 
         const result = micromark(textWithWikilink, "utf-16be", {
@@ -64,7 +87,7 @@ await describe("obsdian wikilink parser should", async () => {
         });
 
         expect(result).to.be.equal(
-            `<p>${textBeforeWikilink}${expectedWikilink}${textAfterWikilink}</p>`
+            `<p>${textBeforeWikilink}\n${expectedWikilink} ${textAfterWikilink}</p>`
         );
     });
 
