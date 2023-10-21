@@ -4,6 +4,9 @@ import { expect } from "chai";
 import { micromark } from "micromark";
 
 await describe("obsdian wikilink parser should", async () => {
+    // crete text for not allowing nested wikilinks
+    // make test that checks the allowed characters for target
+    // make test that checks that it doesnt form wikilink if there is linebreak before ]]
     await it("not create wikilink from just [[", () => {
         const textWithoutRightSquareBrackets =
             "This is the before text [[ this is the after text";
@@ -16,11 +19,20 @@ await describe("obsdian wikilink parser should", async () => {
     });
 
     await it(
-        "not create wikilink if preceding characters from first [ is not whitespace",
+        "not create wikilink if preceding character from first [ is not whitespace, tab or nothing (beggining of line)",
         { todo: true }
     );
-    //make text to allow whitespace after [[ and before ]], should allow white space between the brackets?
-    // make case for empty [[]]
+
+    await it("not create wikilinkg if it is empty", () => {
+        const emptyWikilink = "[[ ]]";
+        const textWithAnEmptyWikilink = `this is some text ${emptyWikilink} this is another text`;
+
+        const result = micromark(textWithAnEmptyWikilink, "utf-16be", {
+            extensions: [micromarkObsidianWikilink()]
+        });
+
+        expect(result).to.be.equal(`<p>${textWithAnEmptyWikilink}</p>`);
+    });
 
     await it("not create wikilink from unclosed [[", () => {
         const textWithUnclosedDoubleSquareBrackets =
@@ -56,9 +68,15 @@ await describe("obsdian wikilink parser should", async () => {
         );
     });
 
-    await it("should create wikilink if the line start with wikilink", {
-        todo: true
-    }); // dunno if needed
+    await it("should create wikilink if line starts or ends with it", () => {
+        const wikilinkText = "This is Text_inside the brackets";
+        const textWithOnlyWikilink = `[[${wikilinkText}]]`;
+        const expectedWikilink = "<p></p>";
 
-    // have to do alias and anchor links as well
+        const result = micromark(textWithOnlyWikilink, "utf-16be", {
+            extensions: [micromarkObsidianWikilink()]
+        });
+
+        expect(result).to.be.equal(expectedWikilink);
+    });
 });

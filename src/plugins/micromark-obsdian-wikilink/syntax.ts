@@ -11,12 +11,14 @@ import {
     types as micromarkTypes
 } from "micromark-util-symbol";
 import assert from "node:assert";
+import { asciiAlphanumeric } from "micromark-util-character";
 
 /* TODO
 We have to change the tests so they dont use fromMarkdown, instead we will test micromark only. For that we also need to write an extension to the html compiler:
 1. user has to setup a base url on initialization -> check for / at the end
 2. render anchor links with the href as base url + normalized wikilink target (replace spaces with -) and text as the non normalized wikilink target (in the future use alias as well)
 3. allow user to optionally pass a function that gets the normalized wikilink target
+have to do alias and anchor links as well
 */
 
 // colocar o jsdocs
@@ -74,7 +76,7 @@ function obsidianWikilinkTokenizer(
             effects.exit(micromarkTypes.obsidianWikilinkMarker);
             effects.enter(micromarkTypes.obsidianWikilinkTarget);
 
-            return parseWikilinkTarget;
+            return (code: Code) => parseWikilinkTarget(code, true);
         }
         console.log("parseSecondLeftBracket: end");
         return nok;
@@ -83,12 +85,15 @@ function obsidianWikilinkTokenizer(
     /**
      * @type {State}
      */
-    function parseWikilinkTarget(code: Code): State | undefined {
-        // make test that checks the allowed characters for target
-        // make test that checks that it doesnt form wikilink if there is linebreak before ]]
-        // make test that checks for empty [[]]
+    function parseWikilinkTarget(
+        code: Code,
+        isItFirstCharacter = false
+    ): State | undefined {
         console.log("parseWikilinkTarget: begin", code);
         if (code === micromarkCodes.eof) {
+            return nok;
+        }
+        if (isItFirstCharacter && !asciiAlphanumeric(code)) {
             return nok;
         }
         if (code === micromarkCodes.rightSquareBracket) {

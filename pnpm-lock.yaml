@@ -13,6 +13,7 @@ specifiers:
   eslint-plugin-astro: ^0.29.0
   eslint-plugin-jsx-a11y: ^6.7.1
   micromark: ^4.0.0
+  micromark-util-character: ^2.0.1
   micromark-util-symbol: ^2.0.0
   micromark-util-types: ^2.0.0
   prettier: ^3.0.3
@@ -23,6 +24,7 @@ dependencies:
   '@astrojs/mdx': 1.1.1_astro@3.2.3
   astro: 3.2.3_@types+node@20.8.0
   micromark: 4.0.0
+  micromark-util-character: 2.0.1
   micromark-util-symbol: 2.0.0
   micromark-util-types: 2.0.0
 

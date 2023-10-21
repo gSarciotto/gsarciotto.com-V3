@@ -18,6 +18,7 @@
         "@astrojs/mdx": "^1.1.1",
         "astro": "3.2.3",
         "micromark": "^4.0.0",
+        "micromark-util-character": "^2.0.1",
         "micromark-util-symbol": "^2.0.0",
         "micromark-util-types": "^2.0.0"
     },
