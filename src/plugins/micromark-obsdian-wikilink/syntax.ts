@@ -12,7 +12,11 @@ import {
     types as micromarkTypes
 } from "micromark-util-symbol";
 import assert from "node:assert";
-import { asciiAlphanumeric, unicodeWhitespace } from "micromark-util-character";
+import {
+    asciiAlphanumeric,
+    markdownLineEnding,
+    unicodeWhitespace
+} from "micromark-util-character";
 
 /* TODO
 We have to change the tests so they dont use fromMarkdown, instead we will test micromark only. For that we also need to write an extension to the html compiler:
@@ -111,7 +115,7 @@ function obsidianWikilinkTokenizer(
         isItFirstCharacter = false
     ): State | undefined {
         console.log("parseWikilinkTarget: begin", code);
-        if (code === micromarkCodes.eof) {
+        if (code === micromarkCodes.eof || markdownLineEnding(code)) {
             return nok;
         }
         if (isItFirstCharacter && !asciiAlphanumeric(code)) {

@@ -89,4 +89,26 @@ await describe("obsdian wikilink parser should", async () => {
             `<p>${textWithUnclosedDoubleSquareBrackets}</p>`
         );
     });
+
+    await it("not create wikilink if there is a linebreak before ]]", () => {
+        const textWithLinebreakBeforeClosingBrackets = `a [[b
+        ]] c`;
+
+        const result = obsidianWikilinkParser(
+            textWithLinebreakBeforeClosingBrackets
+        );
+
+        expect(result).to.be.equal("<p>a [[b\n]] c</p>");
+    });
+
+    await it("not create wikilink if there is a linebreak right after [[", () => {
+        const textWithLinebreakAfterOpeningBrackets = `a [[
+            b]] c`;
+
+        const result = obsidianWikilinkParser(
+            textWithLinebreakAfterOpeningBrackets
+        );
+
+        expect(result).to.be.equal("<p>a [[\nb]] c</p>");
+    });
 });
