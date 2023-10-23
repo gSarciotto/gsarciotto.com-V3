@@ -73,10 +73,12 @@ function obsidianWikilinkTokenizer(
             return nok;
         }
         const previousCharacter = tokenizeContext.previous;
+        if (previousCharacter === micromarkCodes.leftSquareBracket) {
+            // this is so that it doesnt throw on the second [ if it fails to create token on the first [
+            return nok;
+        }
         const isPreviousCharacterValid =
-            previousCharacter === micromarkCodes.leftSquareBracket || // the leftSquareBracket is so that it doesnt throw on the second [ if it fails to create token on the first [
-            previousCharacter === null ||
-            unicodeWhitespace(previousCharacter);
+            previousCharacter === null || unicodeWhitespace(previousCharacter);
         assert(
             isPreviousCharacterValid,
             `obsidianWikilink: previous character ${tokenizeContext.previous} is not valid`
@@ -85,7 +87,6 @@ function obsidianWikilinkTokenizer(
         effects.enter(micromarkTypes.obsidianWikilink);
         effects.enter(micromarkTypes.obsidianWikilinkMarker);
         effects.consume(code);
-        console.log("start end");
 
         return parseSecondLeftSquareBracket;
     }
@@ -115,7 +116,11 @@ function obsidianWikilinkTokenizer(
         isItFirstCharacter = false
     ): State | undefined {
         console.log("parseWikilinkTarget: begin", code);
-        if (code === micromarkCodes.eof || markdownLineEnding(code)) {
+        if (
+            code === micromarkCodes.eof ||
+            code == micromarkCodes.leftSquareBracket ||
+            markdownLineEnding(code)
+        ) {
             return nok;
         }
         if (isItFirstCharacter && !asciiAlphanumeric(code)) {

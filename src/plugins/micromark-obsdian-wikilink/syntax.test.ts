@@ -9,12 +9,9 @@ const obsidianWikilinkParser = (value: string) =>
     });
 
 await describe("obsdian wikilink parser should", async () => {
-    // crete test for not allowing nested wikilinks
-    // make test that checks the allowed characters for target
-    // make test that checks that it doesnt form wikilink if there is linebreak before ]]
     await it("create wikilink without alias", () => {
         const textBeforeWikilink = "this is before";
-        const wikilinkText = "This is Text_inside the brackets";
+        const wikilinkText = "This-is ä Text_inside the braÇkets";
         const textAfterWikilink = "this is after";
         const textWithWikilink = `${textBeforeWikilink}
         [[${wikilinkText}]] ${textAfterWikilink}`;
@@ -47,10 +44,7 @@ await describe("obsdian wikilink parser should", async () => {
     });
 
     await it("not create wikilink if first bracket is escaped", () => {
-        // prettier-ignore
-        const textWithEscapedLeftBracket =
-            // eslint-disable-next-line no-useless-escape
-            "a \\[[b]] c";
+        const textWithEscapedLeftBracket = "a \\[[b]] c";
 
         const result = obsidianWikilinkParser(textWithEscapedLeftBracket);
 
@@ -110,5 +104,19 @@ await describe("obsdian wikilink parser should", async () => {
         );
 
         expect(result).to.be.equal("<p>a [[\nb]] c</p>");
+    });
+
+    await it("not create nested wikilinks", () => {
+        const textFromOuterWikilink = "this is outer";
+        const textFromInnerWikilink = "this is inner";
+        const textAfterInnerWikilink = "some text";
+        const textWithNestedWikilink = `[[${textFromOuterWikilink} [[${textFromInnerWikilink}]] ${textAfterInnerWikilink}]]`;
+        const expectedInnerWikilink = "";
+
+        const result = obsidianWikilinkParser(textWithNestedWikilink);
+
+        expect(result).to.be.equal(
+            `<p>[[${textFromOuterWikilink} ${expectedInnerWikilink} ${textAfterInnerWikilink}]]</p>`
+        );
     });
 });
